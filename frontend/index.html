@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>StockFlow</title>
     <link rel="stylesheet" href="style.css"></link>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="login-wrap" id="loginWrap">
@@ -76,7 +77,8 @@
                     <div class="field">
                         <label>Estoque</label><input id="p-stock" type="number" placeholder="0" />
                     </div>
-                    <button class="btn" onclick="createProduct()">Adicionar</button>
+                    <button class="btn" id="p-submit-btn" onclick="createProduct()">Adicionar</button>
+                    <button class="btn" id="p-cancel-btn" onclick="cancelEdit()" style="display:none; background:#475569">Cancelar</button>
                 </div>
                 <div class="table-wrap">
                     <table>
@@ -120,6 +122,7 @@
         let isRegisterMode = false
         let saleItems = []
         let allProducts = []
+        let editingProductId = null
 
         // Auth ---------------------------------------------
         function toggleAuthMode() {
@@ -233,7 +236,10 @@
                         <td>${p.description || '-'}</td>
                         <td>${fmtMoney(p.price)}</td>
                         <td><span class="badge ${p.stock <= 10 ? 'low' : 'ok'}">${p.stock}</span></td>
-                        <td><button class="btn danger sm" onclick="deleteProduct(${p.id})">Apagar</button></td>
+                        <td style="display:flex; gap:0.5rem">
+                            <button class="btn sm" onclick="editProduct(${p.id})">Editar</button>
+                            <button class="btn danger sm" onclick="deleteProduct(${p.id})">Deletar</button>
+                        </td>
                     </tr>`).join('')
                 : '<tr><td colspan="6" class="empty">Nenhum produto cadastrado</td></tr>'
         }
@@ -245,18 +251,54 @@
             const stock = parseInt(document.getElementById('p-stock').value)
             if (!name || isNaN(price) || isNaN(stock)) return alert('Preencha todos os campos obrigatórios!')
 
-            const res = await fetch(API + '/products/', {
-                method: 'POST',
-                headers: authHeaders(),
-                body: JSON.stringify({ name, description, price, stock })
-            })
-            if (res.ok) {
-                document.getElementById('p-name').value = ''
-                document.getElementById('p-desc').value = ''
-                document.getElementById('p-price').value = ''
-                document.getElementById('p-stock').value = ''
-                loadProducts()
+            if (editingProductId) {
+                const res = await fetch(API + '/products/' + editingProductId, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ name, description, price, stock })
+                })
+                if (res.ok) cancelEdit()
+            } else {
+                const res = await fetch(API + '/products/', {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ name, description, price, stock })
+                })
+                if (res.ok) {
+                    document.getElementById('p-name').value = ''
+                    document.getElementById('p-desc').value = ''
+                    document.getElementById('p-price').value = ''
+                    document.getElementById('p-stock').value = ''
+                }
             }
+            loadProducts()
+        }
+
+        function editProduct(id) {
+            const product = allProducts.find(p => p.id === id)
+            if (!product) return
+
+            editingProductId = id
+
+            document.getElementById('p-name').value = product.name
+            document.getElementById('p-desc').value = product.description || ''
+            document.getElementById('p-price').value = product.price
+            document.getElementById('p-stock').value = product.stock
+
+            document.getElementById('p-submit-btn').textContent = 'Salvar'
+            document.getElementById('p-cancel-btn').style.display = 'inline-block'
+
+            document.querySelector('.form-box').scrollIntoView({ behavior: 'smooth' })
+        }
+
+        function cancelEdit() {
+            editingProductId = null
+            document.getElementById('p-name').value = ''
+            document.getElementById('p-desc').value = ''
+            document.getElementById('p-price').value = ''
+            document.getElementById('p-stock').value = ''
+            document.getElementById('p-submit-btn').textContent = 'Adicionar'
+            document.getElementById('p-cancel-btn').style.display = 'none'
         }
 
         async function deleteProduct(id) {
