@@ -39,8 +39,8 @@ app.include_router(products.router, dependencies=[Depends(get_current_user)])
 app.include_router(sales.router, dependencies=[Depends(get_current_user)])
 app.include_router(dashboard.router, dependencies=[Depends(get_current_user)])
 
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
-
 @app.get("/health")
 def health_check():
     return {"status": "ok", "message": "StockFlow is running"}
+
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
