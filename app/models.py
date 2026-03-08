@@ -11,7 +11,7 @@ class Product(Base):
     description = Column(String, nullable=True)
     price = Column(Float, nullable=False)
     stock = Column(Integer, nullable=False, default=0)
-    created_at = Column(DateTime, default=datetime.now(datetime.timezone.utc))
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     sale_items = relationship("SaleItem", back_populates="product")
 
@@ -20,14 +20,14 @@ class Sale(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     total = Column(Float, nullable=False)
-    created_at = Column(DateTime, default=datetime.now(datetime.timezone.utc))
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     items = relationship("SaleItem", back_populates="sale")
 
 class SaleItem(Base):
     __tablename__ = "sale_items"
 
-    id = Column(Integer, primary_key=True, Index=True)
+    id = Column(Integer, primary_key=True, index=True)
     quantity = Column(Integer, nullable=False)
     unit_price = Column(Float, nullable=False)
 
