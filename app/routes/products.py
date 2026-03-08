@@ -1,3 +1,4 @@
+# IMPORTS ---------------------------------------------------
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -8,15 +9,24 @@ router = APIRouter(
     tags=["Products"]
 )
 
+# ATENÇÃO, a ordem de registro das rotas importa.
+# Rotas estáticas como /low-stock devem sempre vir antes de rotas
+# dinâmicas como /{product_id}, caso contrário o FastAPI interpreta
+# "low-stock" como um valor para o parâmetro product_id.
+
 @router.get("/", response_model=list[schemas.ProductResponse])
 def list_products(db: Session = Depends(get_db)):
     products = db.query(models.Product).all()
     return products
 
+
 @router.get("/low-stock", response_model=list[schemas.ProductResponse])
 def low_stock(threshold: int = 10, db: Session = Depends(get_db)):
+    # threshold é um query parameter opcional, ex: /products/low-stock?threshold=5
+    # se não for enviado, usa 10 como padrão.
     products = db.query(models.Product).filter(models.Product.stock <= threshold).all()
     return products
+
 
 @router.get("/{product_id}", response_model=schemas.ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
@@ -25,20 +35,28 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Produto não encontrado!")
     return product
 
+
 @router.post("/", response_model=schemas.ProductResponse, status_code=201)
 def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
+    # model_dump() converte o schema Pydantic para dicionário.
+    # O ** desempacota esse dicionário como argumentos nomeados para o model,
+    # evitando ter que passar cada campo manualmente.
     new_product = models.Product(**product.model_dump())
     db.add(new_product)
     db.commit()
     db.refresh(new_product)
     return new_product
 
+
 @router.put("/{product_id}", response_model=schemas.ProductResponse)
 def update_product(product_id: int, data: schemas.ProductUpdate, db: Session = Depends(get_db)):
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado!")
-    
+
+    # exclude_unset=True retorna apenas os campos enviados na requisição,
+    # ignorando os que ficaram como None por não terem sido informados.
+    # Isso permite atualizar só o preço sem precisar mandar nome e estoque.
     updates = data.model_dump(exclude_unset=True)
     for field, value in updates.items():
         setattr(product, field, value)
@@ -47,12 +65,15 @@ def update_product(product_id: int, data: schemas.ProductUpdate, db: Session = D
     db.refresh(product)
     return product
 
+
 @router.delete("/{product_id}", status_code=204)
 def delete_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado!")
-    
+
+    # O banco cuida dos sale_items relacionados automaticamente,
+    # definindo product_id como NULL em vez de bloquear a exclusão.
+    # Esse comportamento foi configurado com ondelete="SET NULL" no model SaleItem.
     db.delete(product)
     db.commit()
-

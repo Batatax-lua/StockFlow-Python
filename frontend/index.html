@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StockFlow</title>
-    <link rel="stylesheet" href="style.css"></link>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    </link>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
+    <!-- Tela de login, visível por padrão. Substituída pelo app após autenticação. -->
     <div class="login-wrap" id="loginWrap">
         <div class="login-box">
             <h1>StockFlow</h1>
@@ -15,13 +20,12 @@
             <div class="field"><label>Usuário</label><input id="authUsername" placeholder="seu_usuario" /></div>
             <div class="field"><label>Senha</label><input id="authPassword" type="password" placeholder="senha" /></div>
             <div class="error-msg" id="authError"></div>
-
             <button class="btn" onclick="submitAuth()">Entrar</button>
             <div class="toggle">Ainda não possui uma conta? <span onclick="toggleAuthMode()">Cadastrar</span></div>
         </div>
     </div>
 
-    <!-- APP -->
+    <!-- App principal, oculto até o login ser concluído. -->
     <div class="app" id="appWrap" style="display:none">
         <nav>
             <div class="logo">⚡ StockFlow</div>
@@ -31,7 +35,7 @@
             <button onclick="showSection('history')" id="nav-history">Histórico</button>
             <button onclick="logout()" style="margin-top:auto; color:#da6767">Sair</button>
         </nav>
-    
+
         <main>
             <!-- DASHBOARD -->
             <div class="section" id="section-dashboard">
@@ -78,12 +82,24 @@
                     <div class="field">
                         <label>Estoque</label><input id="p-stock" type="number" placeholder="0" />
                     </div>
+                    <!-- O botão alterna entre "Adicionar" e "Salvar" dependendo do modo ativo. -->
                     <button class="btn" id="p-submit-btn" onclick="createProduct()">Adicionar</button>
-                    <button class="btn" id="p-cancel-btn" onclick="cancelEdit()" style="display:none; background:#475569">Cancelar</button>
+                    <!-- Botão de cancelar só aparece no modo de edição. -->
+                    <button class="btn" id="p-cancel-btn" onclick="cancelEdit()"
+                        style="display:none; background:#475569">Cancelar</button>
                 </div>
                 <div class="table-wrap">
                     <table>
-                        <thead><tr><th>ID</th><th>Nome</th><th>Descrição</th><th>Preço</th><th>Estoque</th><th></th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Descrição</th>
+                                <th>Preço</th>
+                                <th>Estoque</th>
+                                <th></th>
+                            </tr>
+                        </thead>
                         <tbody id="products-tbody"></tbody>
                     </table>
                 </div>
@@ -99,18 +115,27 @@
                     </div>
                     <div class="field">
                         <label>Quantidade</label>
-                        <input id="s-qty" type="number" min="1" value="1" style="min-width:100px;"/>
+                        <input id="s-qty" type="number" min="1" value="1" style="min-width:100px;" />
                     </div>
                     <button class="btn" onclick="addSaleItem()">+ Adicionar Item</button>
                 </div>
                 <div class="table-wrap" style="margin-bottom:1rem">
                     <table>
-                        <thead><tr><th>Produto</th><th>Qtd.</th><th>Preço Unit.</th><th>Subtotal</th><th></th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Qtd.</th>
+                                <th>Preço Unit.</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
                         <tbody id="sale-items-tbody"></tbody>
                     </table>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="font-size:1.1rem">Total: <strong id="sale-total" style="color:#7c6af7">R$ 0,00</strong></div>
+                    <div style="font-size:1.1rem">Total: <strong id="sale-total" style="color:#7c6af7">R$ 0,00</strong>
+                    </div>
                     <button class="btn" onclick="submitSale()">Finalizar Venda</button>
                 </div>
             </div>
@@ -142,14 +167,21 @@
     </div>
 
     <script>
+        // URL base da API. String vazia significa mesmo domínio,
+        // funcionando tanto em localhost quanto em produção sem alteração.
         const API = ''
-        let token = localStorage.getItem('sf_token') || null
-        let isRegisterMode = false
-        let saleItems = []
-        let allProducts = []
-        let editingProductId = null
 
-        // Auth ---------------------------------------------
+        // Token JWT salvo no localStorage para persistir o login entre recarregamentos.
+        let token = localStorage.getItem('sf_token') || null
+
+        let isRegisterMode = false  // controla se o formulário de auth está em modo login ou cadastro
+        let saleItems = []          // itens da venda em andamento, mantidos em memória
+        let allProducts = []        // cache dos produtos carregados, usado na tela de vendas e edição
+        let editingProductId = null // ID do produto sendo editado, null quando em modo criação
+
+        // AUTH ---------------------------------------------
+
+        // Alterna entre os modos de login e cadastro sem recarregar a página.
         function toggleAuthMode() {
             isRegisterMode = !isRegisterMode
             document.getElementById('loginSubtitle').textContent = isRegisterMode ? 'Criar nova conta' : 'Acesse sua conta'
@@ -159,6 +191,8 @@
             document.getElementById('authError').textContent = ''
         }
 
+        // Envia login ou cadastro dependendo do modo ativo.
+        // Após login bem-sucedido, salva o token e entra no app.
         async function submitAuth() {
             const username = document.getElementById('authUsername').value.trim()
             const password = document.getElementById('authPassword').value
@@ -168,7 +202,7 @@
             const res = await fetch(API + endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({username, password})
+                body: JSON.stringify({ username, password })
             })
 
             if (isRegisterMode) {
@@ -194,6 +228,7 @@
             }
         }
 
+        // Remove o token do localStorage e volta para a tela de login.
         function logout() {
             token = null
             localStorage.removeItem('sf_token')
@@ -204,12 +239,16 @@
         function enterApp() {
             document.getElementById('loginWrap').style.display = 'none'
             document.getElementById('appWrap').style.display = 'flex'
+            showSection('dashboard')
         }
 
-        // Navegação ----------------------------------------
+        // NAVEGAÇÃO ----------------------------------------
+
+        // Esconde todas as seções e exibe apenas a solicitada.
+        // Também carrega os dados da seção ao entrar nela.
         function showSection(name) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'))
-            document.querySelectorAll('nav button').forEach (b => b.classList.remove('active'))
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'))
             document.getElementById('section-' + name).classList.add('active')
             document.getElementById('nav-' + name).classList.add('active')
             if (name === 'dashboard') loadDashboard()
@@ -218,16 +257,20 @@
             if (name === 'history') loadHistory()
         }
 
-        // Tools --------------------------------------------
+        // HELPERS ------------------------------------------
+
+        // Monta o header de autenticação usado em todas as requisições protegidas.
         function authHeaders() {
             return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
         }
 
+        // Formata número para moeda brasileira, ex: 12.5 -> "R$ 12,50"
         function fmtMoney(v) {
             return 'R$ ' + Number(v).toFixed(2).replace('.', ',')
         }
 
-        // Dashboard ----------------------------------------
+        // DASHBOARD ----------------------------------------
+
         async function loadDashboard() {
             const res = await fetch(API + '/dashboard/', { headers: authHeaders() })
             const data = await res.json()
@@ -241,6 +284,7 @@
                 ? data.top_products.map(p => `<li><span>${p.name}</span><span class="sold">${p.total_sold} vendidos</span></li>`).join('')
                 : '<li class="empty">Nenhuma venda realizada ainda</li>'
 
+            // Produtos com estoque abaixo de 10 são considerados críticos.
             const lowRes = await fetch(API + '/products/low-stock?threshold=10', { headers: authHeaders() })
             const lowData = await lowRes.json()
             const lowList = document.getElementById('d-lowstock')
@@ -249,7 +293,10 @@
                 : '<li style="color:#86efac; padding:0.6rem 0; font-size:0.9rem">Tudo certo por aqui</li>'
         }
 
-        // Produtos -----------------------------------------
+        // PRODUTOS ------------------------------------------------
+
+        // Carrega e renderiza todos os produtos na tabela.
+        // Também atualiza o cache allProducts usado pela tela de vendas e edição.
         async function loadProducts() {
             const res = await fetch(API + '/products/', { headers: authHeaders() })
             allProducts = await res.json()
@@ -270,6 +317,8 @@
                 : '<tr><td colspan="6" class="empty">Nenhum produto cadastrado</td></tr>'
         }
 
+        // Cria ou atualiza um produto dependendo se editingProductId está preenchido.
+        // Após a operação, recarrega a tabela para refletir as mudanças.
         async function createProduct() {
             const name = document.getElementById('p-name').value.trim()
             const description = document.getElementById('p-desc').value.trim() || null
@@ -278,6 +327,7 @@
             if (!name || isNaN(price) || isNaN(stock)) return alert('Preencha todos os campos obrigatórios!')
 
             if (editingProductId) {
+                // Modo edição, envia apenas os campos alterados via PUT.
                 const res = await fetch(API + '/products/' + editingProductId, {
                     method: 'PUT',
                     headers: authHeaders(),
@@ -285,6 +335,7 @@
                 })
                 if (res.ok) cancelEdit()
             } else {
+                // Modo criação, envia todos os campos via POST.
                 const res = await fetch(API + '/products/', {
                     method: 'POST',
                     headers: authHeaders(),
@@ -300,6 +351,8 @@
             loadProducts()
         }
 
+        // Preenche o formulário com os dados do produto selecionado
+        // e ativa o modo de edição trocando o botão para "Salvar".
         function editProduct(id) {
             const product = allProducts.find(p => p.id === id)
             if (!product) return
@@ -317,6 +370,7 @@
             document.querySelector('.form-box').scrollIntoView({ behavior: 'smooth' })
         }
 
+        // Sai do modo de edição, limpa o formulário e restaura o botão para "Adicionar".
         function cancelEdit() {
             editingProductId = null
             document.getElementById('p-name').value = ''
@@ -333,7 +387,11 @@
             loadProducts()
         }
 
-        // Vendas -------------------------------------------
+        // VENDAS -------------------------------------------
+
+        // Carrega os produtos no select da tela de vendas.
+        // Armazena o preço em data-price para calcular subtotal no frontend
+        // sem precisar de outra chamada à API.
         function loadProductsForSale() {
             fetch(API + '/products/', { headers: authHeaders() })
                 .then(r => r.json())
@@ -344,6 +402,8 @@
                 })
         }
 
+        // Adiciona um item à venda em andamento.
+        // Se o produto já estiver na lista, soma a quantidade em vez de duplicar.
         function addSaleItem() {
             const sel = document.getElementById('s-product')
             const qty = parseInt(document.getElementById('s-qty').value)
@@ -356,7 +416,7 @@
             if (existing) {
                 existing.quantity += qty
             } else {
-                saleItems.push({ product_id: parseInt(sel.value), name: option.text.split(' -')[0], quantity: qty, unit_price: price})
+                saleItems.push({ product_id: parseInt(sel.value), name: option.text.split(' -')[0], quantity: qty, unit_price: price })
             }
             renderSaleItems()
         }
@@ -364,8 +424,9 @@
         function removeSaleItem(index) {
             saleItems.splice(index, 1)
             renderSaleItems()
-        } 
+        }
 
+        // Renderiza a tabela de itens e recalcula o total da venda.
         function renderSaleItems() {
             const tbody = document.getElementById('sale-items-tbody')
             const total = saleItems.reduce((acc, i) => acc + i.unit_price * i.quantity, 0)
@@ -382,6 +443,8 @@
             document.getElementById('sale-total').textContent = fmtMoney(total)
         }
 
+        // Envia a venda para a API e limpa os itens em caso de sucesso.
+        // Erros de estoque insuficiente são exibidos diretamente ao usuário.
         async function submitSale() {
             if (!saleItems.length) return alert('Adicione pelo menos um produto')
             const res = await fetch(API + '/sales/', {
@@ -399,38 +462,48 @@
             }
         }
 
+        // HISTÓRICO ----------------------------------------
+
+        // Carrega vendas com filtro opcional de período.
+        // O input date retorna YYYY-MM-DD, então inverte para DD-MM-YYYY
+        // que é o formato esperado pelo backend.
         async function loadHistory() {
-                const start = document.getElementById('h-start').value
-                const end = document.getElementById('h-end').value
+            const start = document.getElementById('h-start').value
+            const end = document.getElementById('h-end').value
 
-                let url = API + '/sales/history'
-                const params = []
-                if (start) params.push('start=' + start.split('-').reverse().join('-'))
-                if (end) params.push('end=' + end.split('-').reverse().join('-'))
-                if (params.length) url += '?' + params.join('&')
+            let url = API + '/sales/history'
+            const params = []
+            if (start) params.push('start=' + start.split('-').reverse().join('-'))
+            if (end) params.push('end=' + end.split('-').reverse().join('-'))
+            if (params.length) url += '?' + params.join('&')
 
-                const res = await fetch(url, { headers: authHeaders() })
-                const sales = await res.json()
+            const res = await fetch(url, { headers: authHeaders() })
+            const sales = await res.json()
 
-                const tbody = document.getElementById('history-tbody')
-                tbody.innerHTML = sales.length
-                    ? sales.map(s => `
-                        <tr>
-                            <td>#${s.id}</td>
-                            <td>${new Date(s.created_at).toLocaleString('pt-BR')}</td>
-                            <td>${s.items.map(i => `${i.quantity}x ${fmtMoney(i.unit_price)}`).join(', ')}</td>
-                            <td><strong style="color:#7c6af7">${fmtMoney(s.total)}</strong></td>
-                        </tr>`).join('')
-                    : '<tr><td colspan="4" class="empty">Nenhuma venda encontrada</td></tr>'
-            }
+            const tbody = document.getElementById('history-tbody')
+            tbody.innerHTML = sales.length
+                ? sales.map(s => `
+                    <tr>
+                        <td>#${s.id}</td>
+                        <td>${new Date(s.created_at).toLocaleString('pt-BR')}</td>
+                        <td>${s.items.map(i => `${i.quantity}x ${fmtMoney(i.unit_price)}`).join(', ')}</td>
+                        <td><strong style="color:#7c6af7">${fmtMoney(s.total)}</strong></td>
+                    </tr>`).join('')
+                : '<tr><td colspan="4" class="empty">Nenhuma venda encontrada</td></tr>'
+        }
 
-            function clearHistory() {
-                document.getElementById('h-start').value = ''
-                document.getElementById('h-end').value = ''
-                loadHistory()
-            }
+        // Limpa os filtros de data e recarrega o histórico completo.
+        function clearHistory() {
+            document.getElementById('h-start').value = ''
+            document.getElementById('h-end').value = ''
+            loadHistory()
+        }
 
-        // Init ---------------------------------------------
+        // INIT ---------------------------------------------
+
+        // Se já existe um token salvo, entra direto no app sem precisar logar novamente.
+        // O token pode estar expirado, nesse caso as requisições vão retornar 401
+        // e o usuário precisará logar novamente.
         if (token) {
             enterApp()
         }
