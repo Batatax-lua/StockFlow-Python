@@ -28,6 +28,7 @@
             <button onclick="showSection('dashboard')" id="nav-dashboard">Dashboard</button>
             <button onclick="showSection('products')" id="nav-products">Produtos</button>
             <button onclick="showSection('sales')" id="nav-sales">Nova Venda</button>
+            <button onclick="showSection('history')" id="nav-history">Histórico</button>
             <button onclick="logout()" style="margin-top:auto; color:#da6767">Sair</button>
         </nav>
     
@@ -89,7 +90,7 @@
             </div>
 
             <!-- VENDAS -->
-             <div class="section" id="section-sales">
+            <div class="section" id="section-sales">
                 <h1>Nova Venda</h1>
                 <div class="form-box">
                     <div class="field">
@@ -112,7 +113,31 @@
                     <div style="font-size:1.1rem">Total: <strong id="sale-total" style="color:#7c6af7">R$ 0,00</strong></div>
                     <button class="btn" onclick="submitSale()">Finalizar Venda</button>
                 </div>
-             </div>
+            </div>
+
+            <!-- HISTÓRICO -->
+            <div class="section" id="section-history">
+                <h1>Histórico de Vendas</h1>
+                <div class="form-box">
+                    <div class="field"><label>Data início</label><input type="date" id="h-start" /></div>
+                    <div class="field"><label>Data fim</label><input type="date" id="h-end" /></div>
+                    <button class="btn" onclick="loadHistory()">Filtrar</button>
+                    <button class="btn" style="background:#475569" onclick="clearHistory()">Limpar</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Data</th>
+                                <th>Itens</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -190,6 +215,7 @@
             if (name === 'dashboard') loadDashboard()
             if (name === 'products') loadProducts()
             if (name === 'sales') loadProductsForSale()
+            if (name === 'history') loadHistory()
         }
 
         // Tools --------------------------------------------
@@ -372,6 +398,37 @@
                 alert(err.detail || 'Erro ao cadastrar venda')
             }
         }
+
+        async function loadHistory() {
+                const start = document.getElementById('h-start').value
+                const end = document.getElementById('h-end').value
+
+                let url = API + '/sales/history'
+                const params = []
+                if (start) params.push('start=' + start.split('-').reverse().join('-'))
+                if (end) params.push('end=' + end.split('-').reverse().join('-'))
+                if (params.length) url += '?' + params.join('&')
+
+                const res = await fetch(url, { headers: authHeaders() })
+                const sales = await res.json()
+
+                const tbody = document.getElementById('history-tbody')
+                tbody.innerHTML = sales.length
+                    ? sales.map(s => `
+                        <tr>
+                            <td>#${s.id}</td>
+                            <td>${new Date(s.created_at).toLocaleString('pt-BR')}</td>
+                            <td>${s.items.map(i => `${i.quantity}x ${fmtMoney(i.unit_price)}`).join(', ')}</td>
+                            <td><strong style="color:#7c6af7">${fmtMoney(s.total)}</strong></td>
+                        </tr>`).join('')
+                    : '<tr><td colspan="4" class="empty">Nenhuma venda encontrada</td></tr>'
+            }
+
+            function clearHistory() {
+                document.getElementById('h-start').value = ''
+                document.getElementById('h-end').value = ''
+                loadHistory()
+            }
 
         // Init ---------------------------------------------
         if (token) {

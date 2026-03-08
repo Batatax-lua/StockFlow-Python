@@ -35,7 +35,7 @@ class SaleItemCreate(BaseModel):
 
 class SaleItemResponse(BaseModel):
     id: int
-    product_id: int
+    product_id: Optional[int] = None
     quantity: int
     unit_price: float
 
