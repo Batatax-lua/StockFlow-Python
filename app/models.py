@@ -31,7 +31,7 @@ class SaleItem(Base):
     quantity = Column(Integer, nullable=False)
     unit_price = Column(Float, nullable=False)
 
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="SET NULL"), nullable=True)
     sale_id = Column(Integer, ForeignKey("sales.id"), nullable=False)
 
     product = relationship("Product", back_populates="sale_items")

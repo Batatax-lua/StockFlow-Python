@@ -1,0 +1,333 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+}
+
+/* ── LAYOUT ── */
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+nav {
+    width: 220px;
+    background: #1a1d27;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-right: 1px solid #2d3148;
+    position: fixed;
+    height: 100vh;
+}
+
+nav .logo {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #7c6af7;
+    margin-bottom: 2rem;
+    padding-left: 0.5rem;
+}
+
+nav button {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+nav button:hover,
+nav button.active {
+    background: #2d3148;
+    color: #e2e8f0;
+}
+
+nav button.active {
+    color: #7c6af7;
+    font-weight: 600;
+}
+
+main {
+    margin-left: 220px;
+    padding: 2rem;
+    flex: 1;
+}
+
+h1 {
+    font-size: 1.6rem;
+    margin-bottom: 1.5rem;
+    color: #f1f5f9;
+}
+
+h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #cbd5e1;
+}
+
+/* ── CARDS ── */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.card {
+    background: #1a1d27;
+    border: 1px solid #2d3148;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.card .label {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.card .value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #7c6af7;
+}
+
+/* ── TABELA ── */
+.table-wrap {
+    background: #1a1d27;
+    border: 1px solid #2d3148;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #2d3148;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #2d3148;
+    font-size: 0.9rem;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover td {
+    background: #22263a;
+}
+
+.badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge.ok {
+    background: #14532d;
+    color: #86efac;
+}
+
+.badge.low {
+    background: #7f1d1d;
+    color: #fca5a5;
+}
+
+/* ── FORMULÁRIOS ── */
+.form-box {
+    background: #1a1d27;
+    border: 1px solid #2d3148;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.field label {
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+input,
+select {
+    background: #0f1117;
+    border: 1px solid #2d3148;
+    color: #e2e8f0;
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    min-width: 160px;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #7c6af7;
+}
+
+btn,
+.btn {
+    background: #7c6af7;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background 0.2s;
+    height: fit-content;
+}
+
+.btn:hover {
+    background: #6355d4;
+}
+
+.btn.danger {
+    background: #dc2626;
+}
+
+.btn.danger:hover {
+    background: #b91c1c;
+}
+
+.btn.sm {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+}
+
+/* ── LOGIN ── */
+.login-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #0f1117;
+}
+
+.login-box {
+    background: #1a1d27;
+    border: 1px solid #2d3148;
+    border-radius: 16px;
+    padding: 2.5rem;
+    width: 360px;
+}
+
+.login-box h1 {
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.login-box p {
+    text-align: center;
+    color: #64748b;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+}
+
+.login-box .field {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.login-box input {
+    width: 100%;
+}
+
+.login-box .btn {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+}
+
+.login-box .toggle {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.login-box .toggle span {
+    color: #7c6af7;
+    cursor: pointer;
+}
+
+.error-msg {
+    color: #fca5a5;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+/* ── MISC ── */
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+.empty {
+    color: #64748b;
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.9rem;
+}
+
+.top-list {
+    list-style: none;
+}
+
+.top-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #2d3148;
+    font-size: 0.9rem;
+}
+
+.top-list li:last-child {
+    border-bottom: none;
+}
+
+.top-list .sold {
+    color: #7c6af7;
+    font-weight: 600;
+}

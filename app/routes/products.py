@@ -13,6 +13,11 @@ def list_products(db: Session = Depends(get_db)):
     products = db.query(models.Product).all()
     return products
 
+@router.get("/low-stock", response_model=list[schemas.ProductResponse])
+def low_stock(threshold: int = 10, db: Session = Depends(get_db)):
+    products = db.query(models.Product).filter(models.Product.stock <= threshold).all()
+    return products
+
 @router.get("/{product_id}", response_model=schemas.ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
@@ -50,3 +55,4 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     
     db.delete(product)
     db.commit()
+
