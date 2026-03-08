@@ -36,3 +36,11 @@ class SaleItem(Base):
 
     product = relationship("Product", back_populates="sale_items")
     sale = relationship("Sale", back_populates="items")
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
